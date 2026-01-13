@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Products QR Codes</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+
+<style>
+  body { background:#f8f9fa; }
+  .product-card {
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 15px;
+    margin: 15px;
+    text-align: center;
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,.1);
+  }
+</style>
+</head>
+
+<body class="p-3">
+
+<h3 class="mb-4">قائمة المنتجات مع QR Code</h3>
+<div id="products" class="row"></div>
+
+<script>
+/* =======================
+   PRODUCTS DATA
+======================= */
+const products = [
+  { name: "منتج 1", price: 100, discount: 20 },
+  { name: "منتج 2", price: 250, discount: 50 },
+  { name: "منتج 3", price: 75,  discount: 15 }
+];
+
+/* =======================
+   QR LINK (GitHub Pages)
+======================= */
+function generateLink(p) {
+  return `https://yousef270902.github.io/products-qr/?name=${encodeURIComponent(p.name)}&price=${p.price}&discount=${p.discount}`;
+}
+
+/* =======================
+   SHOW PRODUCT CARD
+======================= */
+const params = new URLSearchParams(window.location.search);
+
+if (params.has("name")) {
+
+  const name = params.get("name");
+  const price = Number(params.get("price"));
+  const discount = Number(params.get("discount"));
+  const finalPrice = price - discount;
+
+  document.body.innerHTML = `
+    <div class="container mt-5">
+      <div class="card text-center p-4 shadow">
+        <h3 class="mb-3">${name}</h3>
+        <p>السعر الأصلي: <b>${price}</b> جنيه</p>
+        <p class="text-danger">الخصم: <b>${discount}</b> جنيه</p>
+        <h4 class="text-success">السعر بعد الخصم: ${finalPrice} جنيه</h4>
+      </div>
+    </div>
+  `;
+
+} else {
+
+/* =======================
+   SHOW QR LIST
+======================= */
+  const container = document.getElementById("products");
+
+  products.forEach((p, i) => {
+    const div = document.createElement("div");
+    div.className = "col-md-3 product-card";
+
+    div.innerHTML = `
+      <h5>${p.name}</h5>
+      <p>السعر: ${p.price} جنيه</p>
+      <p>الخصم: ${p.discount} جنيه</p>
+      <div id="qr-${i}" class="mb-2"></div>
+      <button class="btn btn-primary btn-sm" onclick="saveQR(${i}, '${p.name}')">
+        حفظ QR
+      </button>
+    `;
+
+    container.appendChild(div);
+
+    new QRCode(document.getElementById(`qr-${i}`), {
+      text: generateLink(p),
+      width: 150,
+      height: 150
+    });
+  });
+}
+
+/* =======================
+   SAVE QR IMAGE
+======================= */
+function saveQR(i, name) {
+  const qr = document.querySelector(`#qr-${i} canvas`) ||
+             document.querySelector(`#qr-${i} img`);
+
+  const img = qr.tagName === "CANVAS"
+    ? qr.toDataURL("image/png")
+    : qr.src;
+
+  const a = document.createElement("a");
+  a.href = img;
+  a.download = `${name}-QR.png`;
+  a.click();
+}
+</script>
+
+</body>
+</html>
