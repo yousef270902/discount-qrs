@@ -15,6 +15,9 @@
     text-align: center;
     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   }
+  .save-btn {
+    margin-top: 8px;
+  }
 </style>
 </head>
 <body class="p-3">
@@ -29,13 +32,11 @@ const products = [
   {name: "منتج 3", price: 75, discount: 15},
 ];
 
-// Function to generate a product card page URL with query parameters
+// Replace with your local IP for Live Server if scanning from mobile
+const localIP = "192.168.1.100:5500"; // <-- change this to your PC IP and Live Server port
+
 function generateLink(product) {
-  const url = new URL(window.location.href); // current page
-  url.searchParams.set('name', product.name);
-  url.searchParams.set('price', product.price);
-  url.searchParams.set('discount', product.discount);
-  return url.origin + url.pathname + "?name=" + encodeURIComponent(product.name) + "&price=" + product.price + "&discount=" + product.discount;
+  return `http://${localIP}/index.html?name=${encodeURIComponent(product.name)}&price=${product.price}&discount=${product.discount}`;
 }
 
 // Check if URL has query parameters (show product card)
@@ -68,13 +69,31 @@ if(urlParams.has('name')) {
       <p>السعر: ${p.price} جنيه</p>
       <p>الخصم: ${p.discount} جنيه</p>
       <div id="qrcode-${i}"></div>
+      <button class="btn btn-sm btn-primary save-btn" id="save-${i}">حفظ QR</button>
     `;
     container.appendChild(card);
 
-    new QRCode(document.getElementById(`qrcode-${i}`), {
+    const qr = new QRCode(document.getElementById(`qrcode-${i}`), {
       text: generateLink(p),
       width: 120,
       height: 120
+    });
+
+    // Add save functionality
+    document.getElementById(`save-${i}`).addEventListener('click', () => {
+      // QRCode generates a <img> or <canvas> inside the container
+      const qrImg = document.querySelector(`#qrcode-${i} img`) || document.querySelector(`#qrcode-${i} canvas`);
+      let imgSrc;
+      if(qrImg.tagName.toLowerCase() === 'img') {
+        imgSrc = qrImg.src;
+      } else {
+        imgSrc = qrImg.toDataURL("image/png");
+      }
+
+      const a = document.createElement('a');
+      a.href = imgSrc;
+      a.download = `${p.name}-QR.png`;
+      a.click();
     });
   });
 }
