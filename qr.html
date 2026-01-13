@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Products QR Codes</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+<style>
+  .product-card {
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 15px;
+    margin: 15px;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+</style>
+</head>
+<body class="p-3">
+
+<h2>قائمة المنتجات مع QR Code</h2>
+<div id="products" class="d-flex flex-wrap"></div>
+
+<script>
+const products = [
+  {name: "منتج 1", price: 100, discount: 20},
+  {name: "منتج 2", price: 250, discount: 50},
+  {name: "منتج 3", price: 75, discount: 15},
+];
+
+// Function to generate a product card page URL with query parameters
+function generateLink(product) {
+  const url = new URL(window.location.href); // current page
+  url.searchParams.set('name', product.name);
+  url.searchParams.set('price', product.price);
+  url.searchParams.set('discount', product.discount);
+  return url.origin + url.pathname + "?name=" + encodeURIComponent(product.name) + "&price=" + product.price + "&discount=" + product.discount;
+}
+
+// Check if URL has query parameters (show product card)
+const urlParams = new URLSearchParams(window.location.search);
+if(urlParams.has('name')) {
+  const name = urlParams.get('name');
+  const price = parseFloat(urlParams.get('price'));
+  const discount = parseFloat(urlParams.get('discount'));
+  const finalPrice = price - discount;
+
+  document.body.innerHTML = `
+    <div class="container mt-5">
+      <div class="card text-center p-4">
+        <h3>${name}</h3>
+        <p>السعر الأصلي: ${price} جنيه</p>
+        <p>الخصم: ${discount} جنيه</p>
+        <h4>السعر بعد الخصم: ${finalPrice} جنيه</h4>
+      </div>
+    </div>
+  `;
+} else {
+  // Show products list with QR codes
+  const container = document.getElementById('products');
+
+  products.forEach((p, i) => {
+    const card = document.createElement('div');
+    card.className = 'product-card col-md-3';
+    card.innerHTML = `
+      <h5>${p.name}</h5>
+      <p>السعر: ${p.price} جنيه</p>
+      <p>الخصم: ${p.discount} جنيه</p>
+      <div id="qrcode-${i}"></div>
+    `;
+    container.appendChild(card);
+
+    new QRCode(document.getElementById(`qrcode-${i}`), {
+      text: generateLink(p),
+      width: 120,
+      height: 120
+    });
+  });
+}
+</script>
+
+</body>
+</html>
